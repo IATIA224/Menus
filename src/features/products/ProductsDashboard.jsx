@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Navbar from '../../components/Navbar';
 import ProductCard from '../../components/ProductCard';
 import ProductDetailModal from '../../components/ProductDetailModal';
+import Cart from '../../components/Cart';
 import { Search, SlidersHorizontal } from 'lucide-react';
 
 const ProductsDashboard = () => {
@@ -11,6 +12,7 @@ const ProductsDashboard = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(true);
   const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -236,7 +238,37 @@ const ProductsDashboard = () => {
   }, [selectedCategory, searchQuery, priceRange, sortBy]);
 
   const handleAddToCart = (product) => {
-    setCart([...cart, product]);
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  };
+
+  const handleUpdateQuantity = (productId, newQuantity) => {
+    if (newQuantity < 1) return;
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item.id === productId
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== productId));
+  };
+
+  const handleCheckout = () => {
+    alert('Checkout functionality coming soon!');
   };
 
   const handleViewDetails = (product) => {
@@ -247,7 +279,10 @@ const ProductsDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <Navbar cartCount={cart.length} onCartClick={() => console.log('Cart clicked')} />
+      <Navbar 
+        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)} 
+        onCartClick={() => setIsCartOpen(true)} 
+      />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-700 py-8 sm:py-12 md:py-16">
@@ -437,6 +472,16 @@ const ProductsDashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddToCart={handleAddToCart}
+      />
+
+      {/* Shopping Cart Sidebar */}
+      <Cart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveFromCart}
+        onCheckout={handleCheckout}
       />
     </div>
   );

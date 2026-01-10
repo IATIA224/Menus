@@ -4,7 +4,7 @@ import ProductCard from '../../components/ProductCard';
 import ProductDetailModal from '../../components/ProductDetailModal';
 import Cart from '../../components/Cart';
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { getAllItems } from '../../services/itemService';
+import { useCachedProducts } from '../../hooks/useCachedProducts';
 
 const ProductsDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -17,47 +17,35 @@ const ProductsDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coffeeProducts, setCoffeeProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch products from database
+  // Use cached products hook to avoid refetching when switching tabs
+  const { products: cachedProducts, isLoading, refresh: refreshProducts } = useCachedProducts();
+
+  // Transform and set products from cache
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getAllItems();
-        
-        // Transform database items to product format
-        const transformedProducts = Array.isArray(data) ? data.map((item, index) => ({
-          id: item.id || index + 1,
-          name: item.name,
-          price: parseFloat(item.discounted_price) || parseFloat(item.original_price) || 0,
-          originalPrice: item.original_price && parseFloat(item.original_price) !== parseFloat(item.discounted_price) 
-            ? parseFloat(item.original_price) 
-            : null,
-          category: item.category || 'Other',
-          image: item.picture || 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-          description: item.description || 'A delicious menu item',
-          rating: 5,
-          reviews: 0,
-          inStock: item.status && (item.status.toLowerCase() === 'in stock' || item.status.toLowerCase() === 'available'),
-          discount: item.original_price && item.discounted_price 
-            ? Math.round(((parseFloat(item.original_price) - parseFloat(item.discounted_price)) / parseFloat(item.original_price)) * 100)
-            : null,
-          prepTime: item.prep_time ? `${item.prep_time} mins` : '5 mins',
-          vegetarian: true,
-        })) : [];
-        
-        setCoffeeProducts(transformedProducts);
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
-        setCoffeeProducts([]);
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
+    if (cachedProducts && cachedProducts.length > 0) {
+      const transformedProducts = cachedProducts.map((item, index) => ({
+        id: item.id || index + 1,
+        name: item.name,
+        price: parseFloat(item.discounted_price) || parseFloat(item.original_price) || 0,
+        originalPrice: item.original_price && parseFloat(item.original_price) !== parseFloat(item.discounted_price) 
+          ? parseFloat(item.original_price) 
+          : null,
+        category: item.category || 'Other',
+        image: item.picture || 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
+        description: item.description || 'A delicious menu item',
+        rating: 5,
+        reviews: 0,
+        inStock: item.status && (item.status.toLowerCase() === 'in stock' || item.status.toLowerCase() === 'available'),
+        discount: item.original_price && item.discounted_price 
+          ? Math.round(((parseFloat(item.original_price) - parseFloat(item.discounted_price)) / parseFloat(item.original_price)) * 100)
+          : null,
+        prepTime: item.prep_time ? `${item.prep_time} mins` : '5 mins',
+        vegetarian: true,
+      }));
+      setCoffeeProducts(transformedProducts);
+    }
+  }, [cachedProducts]);
 
   // Dynamically extract categories from products
   const categories = useMemo(() => {
@@ -266,6 +254,15 @@ const ProductsDashboard = () => {
                 <option value="price-high">Price: High to Low</option>
                 <option value="rating">Highest Rated</option>
               </select>
+
+              {/* Refresh Button */}
+              <button
+                onClick={refreshProducts}
+                disabled={isLoading}
+                className="px-4 py-2 bg-amber-700 text-white font-semibold rounded-lg hover:bg-amber-800 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <span>⟳</span> Refresh
+              </button>
 
               {/* Toggle Filters Mobile */}
               <button

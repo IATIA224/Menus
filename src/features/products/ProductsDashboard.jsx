@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import ProductCard from '../../components/ProductCard';
 import ProductDetailModal from '../../components/ProductDetailModal';
 import Cart from '../../components/Cart';
 import { Search, SlidersHorizontal } from 'lucide-react';
+import { getAllItems } from '../../services/itemService';
 
 const ProductsDashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -15,196 +16,63 @@ const ProductsDashboard = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [coffeeProducts, setCoffeeProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Coffee Shop Products Data
-  const coffeeProducts = [
-    {
-      id: 1,
-      name: 'Classic Espresso',
-      price: 150,
-      originalPrice: null,
-      category: 'Espresso',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Rich and bold single or double shot espresso',
-      rating: 5,
-      reviews: 342,
-      inStock: true,
-      discount: null,
-      prepTime: '2 mins',
-      vegetarian: true,
-    },
-    {
-      id: 2,
-      name: 'Caramel Frappé',
-      price: 310,
-      originalPrice: 380,
-      category: 'Frappés',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Iced coffee blended with caramel sauce and whipped cream',
-      rating: 5,
-      reviews: 521,
-      inStock: true,
-      discount: 19,
-      prepTime: '5 mins',
-      vegetarian: true,
-    },
-    {
-      id: 3,
-      name: 'Vanilla Latte',
-      price: 260,
-      originalPrice: null,
-      category: 'Lattes',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Smooth espresso with steamed milk and vanilla syrup',
-      rating: 5,
-      reviews: 287,
-      inStock: true,
-      discount: null,
-      prepTime: '4 mins',
-      vegetarian: true,
-    },
-    {
-      id: 4,
-      name: 'Chocolate Frappé',
-      price: 330,
-      originalPrice: 400,
-      category: 'Frappés',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Creamy chocolate blend with espresso and whipped cream',
-      rating: 5,
-      reviews: 456,
-      inStock: true,
-      discount: 18,
-      prepTime: '5 mins',
-      vegetarian: true,
-    },
-    {
-      id: 5,
-      name: 'Cappuccino',
-      price: 250,
-      originalPrice: null,
-      category: 'Lattes',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Espresso with equal parts steamed milk and foam',
-      rating: 5,
-      reviews: 398,
-      inStock: true,
-      discount: null,
-      prepTime: '4 mins',
-      vegetarian: true,
-    },
-    {
-      id: 6,
-      name: 'Strawberry Frappé',
-      price: 330,
-      originalPrice: 400,
-      category: 'Frappés',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Refreshing strawberry blend with ice and whipped cream',
-      rating: 4,
-      reviews: 267,
-      inStock: true,
-      discount: 18,
-      prepTime: '5 mins',
-      vegetarian: true,
-    },
-    {
-      id: 7,
-      name: 'Americano',
-      price: 210,
-      originalPrice: null,
-      category: 'Espresso',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Espresso shots topped with hot water for a lighter flavor',
-      rating: 5,
-      reviews: 324,
-      inStock: true,
-      discount: null,
-      prepTime: '3 mins',
-      vegetarian: true,
-    },
-    {
-      id: 8,
-      name: 'Hazelnut Latte',
-      price: 275,
-      originalPrice: 330,
-      category: 'Lattes',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Warm espresso with steamed milk and hazelnut flavor',
-      rating: 5,
-      reviews: 213,
-      inStock: true,
-      discount: 17,
-      prepTime: '4 mins',
-      vegetarian: true,
-    },
-    {
-      id: 9,
-      name: 'Mocha Frappé',
-      price: 350,
-      originalPrice: 470,
-      category: 'Frappés',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Delicious blend of espresso, chocolate, and coffee',
-      rating: 5,
-      reviews: 489,
-      inStock: true,
-      discount: 25,
-      prepTime: '5 mins',
-      vegetarian: true,
-    },
-    {
-      id: 10,
-      name: 'Macchiato',
-      price: 285,
-      originalPrice: null,
-      category: 'Espresso',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Espresso marked with a touch of steamed milk foam',
-      rating: 5,
-      reviews: 278,
-      inStock: true,
-      discount: null,
-      prepTime: '3 mins',
-      vegetarian: true,
-    },
-    {
-      id: 11,
-      name: 'Mango Frappé',
-      price: 320,
-      originalPrice: 390,
-      category: 'Frappés',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Tropical mango flavor blended with ice and cream',
-      rating: 4,
-      reviews: 195,
-      inStock: true,
-      discount: 18,
-      prepTime: '5 mins',
-      vegetarian: true,
-    },
-    {
-      id: 12,
-      name: 'Irish Coffee',
-      price: 380,
-      originalPrice: null,
-      category: 'Specialty',
-      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
-      description: 'Rich coffee with Irish whiskey and whipped cream topping',
-      rating: 5,
-      reviews: 156,
-      inStock: true,
-      discount: null,
-      prepTime: '6 mins',
-      vegetarian: true,
-    },
-  ];
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllItems();
+        
+        // Transform database items to product format
+        const transformedProducts = Array.isArray(data) ? data.map((item, index) => ({
+          id: item.id || index + 1,
+          name: item.name,
+          price: parseFloat(item.discounted_price) || parseFloat(item.original_price) || 0,
+          originalPrice: item.original_price && parseFloat(item.original_price) !== parseFloat(item.discounted_price) 
+            ? parseFloat(item.original_price) 
+            : null,
+          category: item.category || 'Other',
+          image: item.picture || 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop',
+          description: item.description || 'A delicious menu item',
+          rating: 5,
+          reviews: 0,
+          inStock: item.status && (item.status.toLowerCase() === 'in stock' || item.status.toLowerCase() === 'available'),
+          discount: item.original_price && item.discounted_price 
+            ? Math.round(((parseFloat(item.original_price) - parseFloat(item.discounted_price)) / parseFloat(item.original_price)) * 100)
+            : null,
+          prepTime: item.prep_time ? `${item.prep_time} mins` : '5 mins',
+          vegetarian: true,
+        })) : [];
+        
+        setCoffeeProducts(transformedProducts);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setCoffeeProducts([]);
+        setIsLoading(false);
+      }
+    };
 
-  const categories = ['All', 'Espresso', 'Lattes', 'Frappés', 'Specialty'];
+    fetchProducts();
+  }, []);
+
+  // Dynamically extract categories from products
+  const categories = useMemo(() => {
+    const uniqueCategories = ['All'];
+    const categorySet = new Set();
+    coffeeProducts.forEach(product => {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    });
+    return [...uniqueCategories, ...Array.from(categorySet).sort()];
+  }, [coffeeProducts]);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     let filtered = coffeeProducts;
 
     // Category filter
@@ -235,7 +103,7 @@ const ProductsDashboard = () => {
     }
 
     return filtered;
-  }, [selectedCategory, searchQuery, priceRange, sortBy]);
+  }, [selectedCategory, searchQuery, priceRange, sortBy, coffeeProducts]);
 
   const handleAddToCart = (product) => {
     setCart(prevCart => {
@@ -411,11 +279,21 @@ const ProductsDashboard = () => {
 
             {/* Results Counter */}
             <p className="text-gray-600 text-sm mb-4">
-              Showing {filteredProducts.length} of {coffeeProducts.length} products
+              {isLoading ? 'Loading...' : `Showing ${filteredProducts.length} of ${coffeeProducts.length} products`}
             </p>
 
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading menu items...</p>
+                </div>
+              </div>
+            )}
+
             {/* Products Grid */}
-            {filteredProducts.length > 0 ? (
+            {!isLoading && filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(product => (
                   <ProductCard
@@ -426,11 +304,12 @@ const ProductsDashboard = () => {
                   />
                 ))}
               </div>
-            ) : (
+            ) : !isLoading ? (
               <div className="col-span-full text-center py-12">
                 <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
               </div>
-            )}
+            ) : null
+            }
           </div>
         </div>
       </div>

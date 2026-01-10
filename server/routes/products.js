@@ -6,7 +6,7 @@ const pool = require('../config/database');
 router.get('/', async (req, res) => {
   try {
     const query = `
-      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture
+      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture, vegetarian
       FROM public.menu_items
       ORDER BY category, name
     `;
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const query = `
-      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture
+      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture, vegetarian
       FROM public.menu_items
       WHERE id = $1 OR item_id = $1
     `;
@@ -43,7 +43,7 @@ router.get('/category/:category', async (req, res) => {
   const { category } = req.params;
   try {
     const query = `
-      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture
+      SELECT id, item_id, name, category, description, original_price, discounted_price, prep_time, status, picture, vegetarian
       FROM public.menu_items
       WHERE LOWER(category) = LOWER($1)
       ORDER BY name

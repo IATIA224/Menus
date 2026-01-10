@@ -24,16 +24,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Hide scrollbar while keeping scrolling functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
-}
-
 body {
   background: linear-gradient(to bottom, #0f172a, #1a0933);
   color: var(--text-light);

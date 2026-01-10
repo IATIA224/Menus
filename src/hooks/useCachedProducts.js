@@ -39,10 +39,13 @@ export const useCachedProducts = (ttl = CACHE_TTL) => {
 
   const setCachedData = (data) => {
     try {
+      // Remove picture field to reduce cache size
+      const dataWithoutPictures = data.map(({ picture, ...item }) => item);
+      
       localStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
-          data,
+          data: dataWithoutPictures,
           timestamp: Date.now(),
         })
       );

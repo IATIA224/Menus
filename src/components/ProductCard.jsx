@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Coffee } from 'lucide-react';
 
 const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageSrc, setImageSrc] = useState(product.image);
+
+  // Handle image load error by using fallback
+  const handleImageError = () => {
+    setImageSrc('https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&h=500&fit=crop');
+  };
+
+  // Preload image to ensure it's cached
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImageLoaded(true);
+    img.onerror = () => {
+      setImageLoaded(true);
+      handleImageError();
+    };
+    img.src = product.image;
+  }, [product.image]);
+
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden h-full flex flex-col">
       {/* Image Container */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center overflow-hidden group">
         <img
-          src={product.image}
+          src={imageSrc}
           alt={product.name}
+          onError={handleImageError}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
         {product.discount && (

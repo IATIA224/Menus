@@ -41,7 +41,7 @@ const ProductsDashboard = () => {
           ? Math.round(((parseFloat(item.original_price) - parseFloat(item.discounted_price)) / parseFloat(item.original_price)) * 100)
           : null,
         prepTime: item.prep_time ? `${item.prep_time} mins` : '5 mins',
-        vegetarian: item.vegetarian || false,
+        vegetarian: true,
       }));
       setCoffeeProducts(transformedProducts);
     }

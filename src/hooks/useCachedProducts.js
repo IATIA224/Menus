@@ -39,13 +39,10 @@ export const useCachedProducts = (ttl = CACHE_TTL) => {
 
   const setCachedData = (data) => {
     try {
-      // Remove picture field to reduce cache size
-      const dataWithoutPictures = data.map(({ picture, ...item }) => item);
-      
       localStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
-          data: dataWithoutPictures,
+          data,
           timestamp: Date.now(),
         })
       );
@@ -54,20 +51,22 @@ export const useCachedProducts = (ttl = CACHE_TTL) => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (useCache = false) => {
     try {
       setIsLoading(true);
       setError('');
 
-      // Check cache first
-      const cachedData = getCachedData();
-      if (cachedData) {
-        setProducts(cachedData);
-        setIsLoading(false);
-        return;
+      // Check cache only if explicitly requested (not on initial load)
+      if (useCache) {
+        const cachedData = getCachedData();
+        if (cachedData) {
+          setProducts(cachedData);
+          setIsLoading(false);
+          return;
+        }
       }
 
-      // Fetch fresh data if not cached
+      // Fetch fresh data from API
       const data = await getAllItems();
       const validData = Array.isArray(data) ? data : [];
       

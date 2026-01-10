@@ -4,42 +4,9 @@ import { X, Clock, ShoppingCart, Coffee } from 'lucide-react';
 const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
   if (!isOpen || !product) return null;
 
-  // Handle backdrop click to close modal
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-    >
-      <div 
-        className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-        style={{
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-        }}
-      >
-        <style>{`
-          .modal-content::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-          }
-          .modal-content {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-          }
-        `}</style>
-        <div 
-          className="modal-content max-h-[90vh] overflow-y-auto"
-          style={{
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-          }}
-        >
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-amber-900 to-amber-800 text-white p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold">{product.name}</h2>
@@ -128,7 +95,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
           </div>
 
           {/* Product Info */}
-          {product.reviews > 0 && (
+          {product.reviews && (
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">
                 <span className="font-semibold text-gray-800">{product.reviews}</span> customers have ordered this product
@@ -156,7 +123,6 @@ const ProductDetailModal = ({ product, isOpen, onClose, onAddToCart }) => {
               Add to Cart
             </button>
           </div>
-        </div>
         </div>
       </div>
     </div>

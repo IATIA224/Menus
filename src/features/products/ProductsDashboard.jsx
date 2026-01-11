@@ -3,6 +3,7 @@ import Navbar from '../../components/Navbar';
 import ProductCard from '../../components/ProductCard';
 import ProductDetailModal from '../../components/ProductDetailModal';
 import Cart from '../../components/Cart';
+import Checkout from '../checkout/Checkout';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useCachedProducts } from '../../hooks/useCachedProducts';
 
@@ -14,6 +15,7 @@ const ProductsDashboard = () => {
   const [showFilters, setShowFilters] = useState(true);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coffeeProducts, setCoffeeProducts] = useState([]);
@@ -124,7 +126,15 @@ const ProductsDashboard = () => {
   };
 
   const handleCheckout = () => {
-    alert('Checkout functionality coming soon!');
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleConfirmOrder = (orderData) => {
+    console.log('Order confirmed:', orderData);
+    // Clear cart after successful order
+    setCart([]);
+    // You can add API call here to submit order to backend
   };
 
   const handleViewDetails = (product) => {
@@ -358,6 +368,14 @@ const ProductsDashboard = () => {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveFromCart}
         onCheckout={handleCheckout}
+      />
+
+      {/* Checkout Modal */}
+      <Checkout
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={cart}
+        onConfirmOrder={handleConfirmOrder}
       />
     </div>
   );

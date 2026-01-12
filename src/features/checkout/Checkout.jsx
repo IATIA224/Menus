@@ -15,6 +15,7 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
   const [gcashNumber, setGcashNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
   if (!isOpen) return null;
 
@@ -30,7 +31,7 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validation based on order type
@@ -58,8 +59,75 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
 
     setIsProcessing(true);
 
-    // Simulate order processing
-    setTimeout(() => {
+    try {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+      let response;
+      let orderData;
+
+      if (orderType === 'dine-in') {
+        response = await fetch(`${API_BASE_URL}/api/orders/dine-in`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerName: customerInfo.name,
+            tableNumber: customerInfo.tableNumber,
+            phoneNumber: customerInfo.phone,
+            notes: customerInfo.notes,
+            paymentMethod: paymentMethod,
+            subtotal: subtotal,
+            total: total,
+            items: items.map(item => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.image
+            }))
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.details || 'Failed to save dine-in order');
+        }
+        orderData = await response.json();
+      } else if (orderType === 'delivery') {
+        response = await fetch(`${API_BASE_URL}/api/orders/delivery`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerName: customerInfo.name,
+            phoneNumber: customerInfo.phone,
+            deliveryAddress: customerInfo.address,
+            notes: customerInfo.notes,
+            paymentMethod: paymentMethod,
+            subtotal: subtotal,
+            deliveryFee: 50,
+            total: total,
+            items: items.map(item => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.image
+            }))
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.details || 'Failed to save delivery order');
+        }
+        orderData = await response.json();
+      }
+
+      // Order processing complete
+      setOrderId(orderData.order.id);
       setIsProcessing(false);
       setOrderConfirmed(true);
       
@@ -71,7 +139,8 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
           paymentMethod,
           gcashNumber: paymentMethod === 'gcash' ? gcashNumber : null,
           items,
-          total
+          total,
+          orderId: orderData.order.id
         });
       }
 
@@ -79,11 +148,16 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
       setTimeout(() => {
         handleReset();
       }, 3000);
-    }, 2000);
+    } catch (error) {
+      console.error('Error processing order:', error);
+      setIsProcessing(false);
+      alert('Error processing your order. Please try again.');
+    }
   };
 
   const handleReset = () => {
     setOrderConfirmed(false);
+    setOrderId(null);
     setStep(1);
     setOrderType('');
     setCustomerInfo({ name: '', phone: '', address: '', tableNumber: '', notes: '' });
@@ -111,8 +185,20 @@ const Checkout = ({ isOpen, onClose, items, onConfirmOrder }) => {
             <p className="text-gray-600 mb-4">
               Thank you for your order, {customerInfo.name}!
             </p>
-            <p className="text-sm text-gray-500">
-              Your order will be prepared shortly.
+            
+            {/* Order ID Display */}
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-gray-600 mb-1">Your Order ID</p>
+              <p className="text-3xl font-bold text-amber-700">#{orderId}</p>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-2">
+              {orderType === 'delivery'
+                ? 'Your order will be delivered soon. Please keep your order ID for reference.'
+                : 'Your order will be prepared shortly. Please keep your order ID for reference.'}
+            </p>
+            <p className="text-xs text-gray-400">
+              Order placed at {new Date().toLocaleTimeString('en-PH')}
             </p>
           </div>
         </div>
